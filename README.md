@@ -7,61 +7,24 @@ export TUTORIAL_HOME="$(pwd)/knative-tutorial"
 
 [Redhat reference](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/setup/setup.html#download-tutorial-sources)
 ## Tutorial Tools
-[#tools]
-== Tools
+
 
 The following CLI tools are required for running the exercises in this tutorial. Please have them installed and configured before you get started with any of the tutorial chapters.
 
-[cols="4*^,4*.",options="header,+attributes"]
-|===
+
 |**Tool**|**macOS**|**Fedora**|**windows**
+|--------------------|----------------------|-----------------------------------|------------------------------------|
+| Git                | [Download](https://git-scm.com/download/mac)|[Download]( https://git-scm.com/download/win)|[Download](https://git-scm.com/download/linux)|
+| `Docker`           |                      |  `dnf install docker`             |  choco install docker-cli          |
+| kubectl            |                      |                                   |  choco install kubernetes-cli      |
+| stern              | brew install stern   | https://github.com/wercker/stern  |  choco install stern               |
+| yq                 |                      |                                   |  choco install yq                  |
+| httpie             | brew install httpie  | dnf install httpie                |  choco install httpie              |
+| hey                | brew install hey     |                                   |                                    |
+| watch              | brew install watch   | dnf install procps-ng             |  choco install docker-watch-forwarder |
+| kubectx and kubens | brew install kubectx | https://github.com/ahmetb/kubectx |  choco install kubectx             |
 
-| Git
-| https://git-scm.com/download/mac[Download]
-| https://git-scm.com/download/win[Download]
-| https://git-scm.com/download/linux[Download]
-
-| `Docker`
-| https://docs.docker.com/docker-for-mac/install[Docker for Mac]
-| `dnf install docker`
-| https://docs.docker.com/docker-for-windows/install[Docker for Windows]
-
-| `kubectl {kubernetes-version}`
-| https://storage.googleapis.com/kubernetes-release/release/{kubernetes-version}/bin/darwin/amd64/kubectl[Download]
-| https://storage.googleapis.com/kubernetes-release/release/{kubernetes-version}/bin/linux/amd64/kubectl[Download]
-| https://storage.googleapis.com/kubernetes-release/release/{kubernetes-version}/bin/windows/amd64/kubectl.exe[Download]
-
-| https://github.com/wercker/stern[stern]
-| `brew install stern`
-| https://github.com/wercker/stern/releases/download/1.6.0/stern_linux_amd64[Download]
-| https://github.com/wercker/stern/releases/download/1.11.0/stern_windows_amd64.exe[Download]
-
-| https://github.com/mikefarah/yq[yq v2.4.1]
-| https://github.com/mikefarah/yq/releases/download/2.4.1/yq_darwin_amd64[Download]
-| https://github.com/mikefarah/yq/releases/download/2.4.1/yq_linux_amd64[Download]
-| https://github.com/mikefarah/yq/releases/download/2.4.1/yq_windows_amd64.exe[Download]
-
-| https://httpie.org/[httpie]
-| `brew install httpie`
-| `dnf install httpie`
-| https://httpie.org/doc#windows-etc
-
-| https://github.com/rakyll/hey[hey]
-| https://storage.googleapis.com/hey-release/hey_darwin_amd64[Download]
-| https://storage.googleapis.com/jblabs/dist/hey_linux_v0.1.2[Download]
-| https://storage.googleapis.com/jblabs/dist/hey_win_v0.1.2.exe[Download]
-
-| watch
-| `brew install watch`
-| `dnf install procps-ng`
-|
-
-| kubectx and kubens
-| `brew install kubectx`
-| https://github.com/ahmetb/kubectx
-|
-
-|===
+  
 
 ## Creating Kubernetes Namespaces for This Book’s Recipes
 The recipes in each chapter will be deployed in the namespace dedicated for the chapter. Each chapter will instruct you to switch to the respective namespace. Run the following command to create all the required namespaces for this book:
