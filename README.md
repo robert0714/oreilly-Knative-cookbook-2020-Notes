@@ -22,7 +22,7 @@ The following CLI tools are required for running the exercises in this tutorial.
 | httpie             | brew install httpie  | dnf install httpie                |  choco install httpie              |
 | hey                | brew install hey     |                                   |                                    |
 | watch              | brew install watch   | dnf install procps-ng             |  choco install docker-watch-forwarder |
-| kubectx and kubens | brew install kubectx | https://github.com/ahmetb/kubectx |  choco install kubectx             |
+| kubectx and kubens | brew install kubectx | https://github.com/ahmetb/kubectx |  choco install kubectx    kubens        |
 
   
 
