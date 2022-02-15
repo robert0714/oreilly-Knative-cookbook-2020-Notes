@@ -20,7 +20,7 @@ The following CLI tools are required for running the exercises in this tutorial.
 | stern              | brew install stern   | https://github.com/wercker/stern  |  choco install stern               |
 | yq                 |                      |                                   |  choco install yq                  |
 | httpie             | brew install httpie  | dnf install httpie                |  choco install httpie              |
-| hey                | brew install hey     |                                   |                                    |
+| hey                | brew install hey     |                                   |  https://github.com/rakyll/hey     |
 | watch              | brew install watch   | dnf install procps-ng             |  choco install docker-watch-forwarder |
 | kubectx and kubens | brew install kubectx | https://github.com/ahmetb/kubectx |  choco install kubectx    kubens        |
 
