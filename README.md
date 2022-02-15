@@ -47,12 +47,12 @@ The following CLI tools are required for running the exercises in this tutorial.
     * Let [``minikube tunnel``](https://minikube.sigs.k8s.io/docs/commands/tunnel/) is running.
     * Configure metallb (it's ip range must be nearby minikube's ip )
         ```bash
-        $ minikube addons enable metallb
+        $ minikube -p knative addons enable metallb
         - Using image metallb/speaker:v0.9.6
         - Using image metallb/controller:v0.9.6
         * The 'metallb' addon is enabled
 
-        $ minikube addons configure metallb
+        $ minikube -p knative addons configure metallb
         -- Enter Load Balancer Start IP: 192.168.59.200
         -- Enter Load Balancer End IP: 192.168.59.210
         - Using image metallb/controller:v0.9.6
@@ -62,12 +62,12 @@ The following CLI tools are required for running the exercises in this tutorial.
 ## Creating Kubernetes Namespaces for This Book’s Recipes
 The recipes in each chapter will be deployed in the namespace dedicated for the chapter. Each chapter will instruct you to switch to the respective namespace. Run the following command to create all the required namespaces for this book:
 ```bash
-$ kubectl create namespace chapter-2
-$ kubectl create namespace chapter-3
-$ kubectl create namespace chapter-4
-$ kubectl create namespace chapter-5
-$ kubectl create namespace chapter-6
-$ kubectl create namespace chapter-7
+kubectl create namespace chapter-2
+kubectl create namespace chapter-3
+kubectl create namespace chapter-4
+kubectl create namespace chapter-5
+kubectl create namespace chapter-6
+kubectl create namespace chapter-7
 ```
 ### Why Switch Namespaces?
 Kubernetes by default creates the ``default`` namespace. You can control the namespace of the resource by specifying the ``--namespace`` or ``-n`` option to all your Kubernetes commands. By switching to the right namespace, you can be assured that your Kubernetes resources are created in the correct place as needed by the recipes.
