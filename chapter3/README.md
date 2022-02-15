@@ -277,7 +277,7 @@ spec:
             httpGet:
               path: /healthz
 ```
-❶ The minimum number of pods is set to ``2``; these pods should always be available even after the Knative Service has exceeded the ``stable-window``.
+❶ The minimum number of pods is set to ``2``; these pods should always be available even after the Knative Service has exceeded the ``stable-window``.   
 ❷ The maximum number of pods is set to ``5``, the number of pods the service can scale up to when it receives more requests than its container concurrency limits.
 
 To see these settings in action, first watch your pod lifecycle with the following command:
