@@ -303,7 +303,16 @@ You will notice that the prime-generator has been scaled up to 2 replicas as des
 
 The final test is to attempt to overload the service with too many requests by running the load test script $BOOK_HOME/bin/load.sh. You will observe that maxScale will limit the autoscaler to 5 pods:
 ```bash
-$ $BOOK_HOME/bin/load.sh
+export ksvc_url=$(kubectl get ksvc prime-generator  -n chapter-3 -o json |jq -r ".status.url")
+export hostname=${ksvc_url:7}
+export ingress_ip=$(kubectl -n kourier-system get svc  -o json |jq -r ".items[0].status.loadBalancer.ingress[0].ip")
+
+curl -H "Host:$hostname"  $ingress_ip
+
+hey -c 50 -z 10s \
+  -host "$hostname" \
+ "http://$ingress_ip/?sleep=3&upto=10000&memload=100" 
+
 $ watch kubectl get pods
 NAME                                             READY   STATUS    AGE
 prime-generator-v2-deployment-84f459b57f-6vxxx   2/2     Running   5s
