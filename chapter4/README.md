@@ -311,3 +311,6 @@ kn subscription delete eventinghellob-sub
 kn source ping delete event-greeter-ping-source
 kn channel delete eventinghello-ch
 ```
+## 4.x Brokers and Triggers
+Use the Knative Eventing ``Broker`` and ``Trigger`` Custom Resources to allow for [CloudEvent](https://cloudevents.io/) attribute filtering.
+[Refer](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/eventing-trigger-broker.html)  
