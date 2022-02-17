@@ -89,11 +89,73 @@ spec:
 ```
 ❶  A concurrency of 1 HTTP request (an event) is consumed at a time. Most applications/services can easily handle many events concurrently and Knative’s out-of-the-box default is 100. For the purposes of experimentation, it is interesting to see the behavior when you use 1 as the autoscaling target.
 ### Discussion
+[Refererence](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/eventing.html#eventing-watch-logs)
+
 You can deploy and verify that the ``eventinghello`` Sink Service has been deployed successfully by looking for ``READY`` marked as ``True``:
 ```bash
 $ kubectl -n chapter-4 apply -f eventing-hello-sink.yaml
 service.serving.knative.dev/eventinghello created
 $ kubectl get ksvc
-NAME            URL                                                      LATESTCREATED         LATESTREADY   READY     REASON
-eventinghello   http://eventinghello.chapter-4.192.168.59.200.sslip.io   eventinghello-00001                 Unknown   RevisionMissing
+NAME            URL                                                      LATESTCREATED         LATESTREADY           READY   REASON
+eventinghello   http://eventinghello.chapter-4.192.168.59.200.sslip.io   eventinghello-00001   eventinghello-00001   True
+```
+The default behavior of Knative Serving is that the very first deployment of a Knative Serving Service will automatically scale up to one pod, and after about 90 seconds it will autoscale down to zero pods.
+
+You can actively watch the pod lifecycle with the following command:
+```bash
+$ kubectl get pods -w
+```
+You can monitor the logs of the eventinghello pod with:
+```bash
+$ stern eventinghello -c user-container
+```
+Wait until eventinghello scales to zero pods before moving on.The logs will have the output like below printing every 2 minutes.
+```bash
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,186 INFO  [eventing-hello] (executor-thread-1) ce-id=d54ae831-ba74-47e0-83bb-337df83e0344
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,186 INFO  [eventing-hello] (executor-thread-1) ce-source=/apis/v1/namespaces/chapter-4/pingsources/eventinghello-ping-source
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,188 INFO  [eventing-hello] (executor-thread-1) ce-specversion=1.0
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,188 INFO  [eventing-hello] (executor-thread-1) ce-time=2022-02-17T01:02:00.165087764Z
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,188 INFO  [eventing-hello] (executor-thread-1) ce-type=dev.knative.sources.ping
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,188 INFO  [eventing-hello] (executor-thread-1) content-type=null
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,189 INFO  [eventing-hello] (executor-thread-1) content-length=48
+eventinghello-00001-deployment-5897f8b497-bbnmq user-container 2022-02-17 01:02:00,202 INFO  [eventing-hello] (executor-thread-1) POST:{"message": "Thanks for doing Knative Tutorial"}
+```
+## 4.4 Connecting a Source to the Service
+### Problem
+You have a Knative Serving Service (Sink) and need to connect it to a Knative Eventing Source to test its autoscaling behavior.
+### Solution
+[Refererence](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/eventing-src-to-sink.html#eventing-source)
+
+Deploy a ``PingSource`` ( ``CronJobSource`` ), as it is the easiest solution to verify if Knative Eventing is responding to events correctly. To deploy a ``PingSource`` ( ``CronJobSource`` ), run the following command:
+```bash
+$ kubectl -n chapter-4 apply -f eventinghello-source.yaml
+cronjobsource.sources.eventing.knative.dev/eventinghello-cronjob-source created
+```
+or
+```bash
+kn source ping create eventinghello-ping-source \
+  --schedule "*/2 * * * *" \
+  --data '{"message": "Thanks for doing Knative Tutorial"}' \
+  --sink ksvc:eventinghello
+```
+#### Verification
+```bash
+$ kubectl -n chapter-4 get pingsources
+NAME                        SINK                                               SCHEDULE      AGE    READY   REASON
+eventinghello-ping-source   http://eventinghello.chapter-4.svc.cluster.local   */1 * * * *   3m5s   True
+
+$ kn -n chapter-4 source ping list
+NAME                        SCHEDULE      SINK                 AGE    CONDITIONS   READY   REASON
+eventinghello-ping-source   */1 * * * *   ksvc:eventinghello   102m   3 OK / 3     True
+
+```
+#### Cleanup
+```bash
+kubectl delete -f ${TUTORIAL_HOME}/eventing/eventinghello-source.yaml
+kubectl delete -f ${TUTORIAL_HOME}/eventing/eventing-hello-sink.yaml
+```
+or
+```bash
+kn source ping delete eventinghello-ping-source
+kn service delete eventinghello
 ```
