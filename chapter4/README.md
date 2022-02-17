@@ -35,7 +35,8 @@ You need a way to connect to and receive events into your application.
 ### Solution
 Knative Eventing Sources are software components that emit events. The job of a Source is to connect to, drain, capture, and potentially buffer events, often from an external system, and then relay those events to the Sink.
 
-Knative Eventing Sources install the following four sources out-of-the-box:
+Knative Eventing Sources install the following four sources out-of-the-box:  
+old version
 ```bash
 $ kubectl api-resources --api-group=sources.eventing.knative.dev
 NAME              APIGROUP                      NAMESPACED   KIND
@@ -43,6 +44,15 @@ apiserversources  sources.eventing.knative.dev  true         ApiServerSource
 containersources  sources.eventing.knative.dev  true         ContainerSource
 cronjobsources    sources.eventing.knative.dev  true         CronJobSource
 sinkbindings      sources.eventing.knative.dev  true         SinkBinding
+```
+2022.02.17 version is  1.12 
+```bash
+kubectl api-resources --api-group='sources.knative.dev'
+NAME               SHORTNAMES   APIVERSION               NAMESPACED   KIND
+apiserversources                sources.knative.dev/v1   true         ApiServerSource
+containersources                sources.knative.dev/v1   true         ContainerSource
+pingsources                     sources.knative.dev/v1   true         PingSource
+sinkbindings                    sources.knative.dev/v1   true         SinkBinding
 ```
 ## 4.3 Deploying a Knative Eventing Service
 ### Problem
@@ -151,11 +161,153 @@ eventinghello-ping-source   */1 * * * *   ksvc:eventinghello   102m   3 OK / 3  
 ```
 #### Cleanup
 ```bash
-kubectl delete -f ${TUTORIAL_HOME}/eventing/eventinghello-source.yaml
-kubectl delete -f ${TUTORIAL_HOME}/eventing/eventing-hello-sink.yaml
+kubectl delete -f eventinghello-source.yaml
+kubectl delete -f eventing-hello-sink.yaml
 ```
 or
 ```bash
 kn source ping delete eventinghello-ping-source
 kn service delete eventinghello
+```
+## 4.x Channel and Subscribers
+#### Channels
+[Refer](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/channel-and-subscribers.html#eventing-channel)  
+Channels are an event forwarding and persistence layer where each channel is a separate Kubernetes Custom Resource. A Channel may be backed by Apache Kafka or InMemoryChannel. This recipe focuses on InMemoryChannel.
+
+#### Subscriptions
+Subscriptions are how you register your service to listen to a particular channel.
+
+### Channel(Sink)
+The [channel or sink](https://en.wikipedia.org/wiki/Event-driven_architecture#Event_channel) is an interface between the event source and the subscriber. The channels are built in to store the incoming events and distribute the event data to the subscribers. When forwarding event to subscribers the channel transforms the event data as per CloudEvent specification.
+
+#### Create Event Channel
+Run the following commands to create the channel:
+```bash
+kubectl apply -f  eventing/channel.yaml
+```
+or
+```bash
+kn channel create eventinghello-ch
+NAME               URL                                                              AGE     READY   REASON
+eventinghello-ch   http://eventinghello-ch-kn-channel.chapter-4.svc.cluster.local   6m16s   True
+```
+
+Verification
+```bash
+kubectl get channels.messaging.knative.dev
+```
+or
+```bash
+kn channel list
+NAME               TYPE              URL                                                              AGE     READY   REASON
+eventinghello-ch   InMemoryChannel   http://eventinghello-ch-kn-channel.chapter-4.svc.cluster.local   5m55s   True
+```
+ 
+### Event Source
+[Refer](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/channel-and-subscribers.html#eventing-source)  
+The event source listens to external events e.g. a kafka topic or for a file on a FTP server. It is responsible to drain the received event(s) along with its data to a configured sink.
+#### Create Event Source
+Run the following commands to create the event source resources:
+```bash
+kubectl apply -f event-source.yaml
+```
+or
+```bash
+kn source ping create event-greeter-ping-source \
+  --schedule "*/2 * * * *" \
+  --sink channel:eventinghello-ch
+```
+
+Verification
+```bash
+kubectl get pingsource.sources.knative.dev
+NAME                        SINK                                                             SCHEDULE      AGE   READY   REASON
+event-greeter-ping-source   http://eventinghello-ch-kn-channel.chapter-4.svc.cluster.local   */2 * * * *   42s   True
+```
+or
+```bash
+kn source ping list
+NAME                        SCHEDULE      SINK                       AGE   CONDITIONS   READY   REASON
+event-greeter-ping-source   */2 * * * *   Channel:eventinghello-ch   12s   3 OK / 3     True
+```
+### Event Subscriber
+[Refer](https://redhat-developer-demos.github.io/knative-tutorial/knative-tutorial/eventing/channel-and-subscribers.html#eventing-subscriber)  
+The event subscription is responsible of connecting the channel(sink) with the service. Once a service is connected to a channel it starts receiving the events (cloud events)
+#### Create Subscriber Services
+##### Deploy eventing-helloa-sink
+```bash
+kubectl apply -f  eventing-helloa-sink.yaml
+```
+or
+```bash
+kn service create eventinghelloa \
+  --concurrency-target=1 \
+  --revision-name=eventinghelloa-v1 \
+  --image=quay.io/rhdevelopers/eventinghello:0.0.2
+```
+##### Deploy eventing-hellob-sink
+```bash
+kubectl apply -f  eventing-hellob-sink.yaml
+```
+or
+```bash
+kn service create eventinghellob \
+  --concurrency-target=1 \
+  --revision-name=eventinghellob-v1 \
+  --image=quay.io/rhdevelopers/eventinghello:0.0.2
+```
+#### Create Channel Subscribers
+##### Subscribe to eventinghelloa
+```bash
+kubectl apply -f  eventing-helloa-sub.yaml
+```
+or
+```bash
+kn subscription create eventinghelloa-sub \
+  --channel eventinghello-ch \
+  --sink eventinghelloa
+```
+##### Subscribe to eventinghellob
+```bash
+kubectl apply -f  eventing-hellob-sub.yaml
+```
+or
+```bash
+kn subscription create eventinghellob-sub \
+  --channel eventinghello-ch \
+  --sink eventinghellob
+```
+##### Verification
+```bash
+kubectl get subscription.messaging.knative.dev
+
+NAME                 AGE   READY   REASON
+eventinghelloa-sub   26s   True
+eventinghellob-sub   6s    True
+```
+or
+```bash
+kn subscription list
+
+NAME                 CHANNEL                    SUBSCRIBER            REPLY   DEAD LETTER SINK   READY   REASON
+eventinghelloa-sub   Channel:eventinghello-ch   ksvc:eventinghelloa                              True
+eventinghellob-sub   Channel:eventinghello-ch   ksvc:eventinghellob                              True
+```
+#### Cleanup
+```bash
+kubectl delete -f eventing-helloa-sink.yaml
+kubectl delete -f eventing-helloa-sub.yaml
+kubectl delete -f eventing-hellob-sink.yaml
+kubectl delete -f eventing-hellob-sub.yaml
+kubectl delete -f event-source.yaml
+kubectl delete -f channel.yaml
+```
+or
+```bash
+kn service delete eventinghelloa
+kn subscription delete eventinghelloa-sub
+kn service delete eventinghellob
+kn subscription delete eventinghellob-sub
+kn source ping delete event-greeter-ping-source
+kn channel delete eventinghello-ch
 ```
